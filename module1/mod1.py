@@ -12,27 +12,30 @@ import time
 #Recive data from pluto for 30 seconds
 #Put data in the massive array 
 #Plot with pyplot.specgram
-#:)
+### :)
 
 #variables
 fc = 433900000
-fs = fc*2
+fs = 550e3
+bufferSize = 4096*2
 runTime = 30 #in seconds 
-samples = 30*fs #number of samples
+samples = runTime*fs/bufferSize #number of samples
 sdr = adi.Pluto("ip:192.168.2.1")
 #configure properties
-rx_lo = int(fc) #sets Fc
-sample_rate = int(fs) #Filtercut off
-rx_rf_bandwidth = int(fs)
-rx_buffer_size = int(1024)
+sdr.rx_lo = int(fc) #sets Fc
+sdr.sample_rate = int(fs) #Filtercut off
+sdr.rx_rf_bandwidth = int(6e4)
+sdr.rx_buffer_size = int(1024)
 
 data = sdr.rx()
 dataSet = np.array([])
 startTime = time.time()
-for i in range(fs):
+for i in range(int(samples)):
     dataSet = np.concatenate((dataSet, sdr.rx()), axis=0)
-    time.sleep(1/fs)
+    print(i)
+    time.sleep(1/(fs)*bufferSize)
+    
 
 print("done")
-plt.specgram(dataSet, Fs=fs)
+plt.specgram(dataSet, Fs=fs, NFFT=bufferSize)
 plt.show()

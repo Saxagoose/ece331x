@@ -15,31 +15,27 @@ import time
 ### :)
 
 #variables
-fc = 433900000
-fs = 521e3
-bufferSize = 2**16 #play with this
-runTime = 30 #in seconds 
-bandwidth = 26e4
-samples = runTime*fs/bufferSize #number of samples
+fc = 433900000 #center freq
+fs = 521e3 #Sampling rate
+bufferSize = 2**16 #Buffer size
+runTime = 30 #Run time
+bandwidth = 26e4 #Bandwidth 
+samples = runTime*fs/bufferSize #number of sample buffers
 sdr = adi.Pluto("ip:192.168.2.1")
 #configure properties
 sdr.rx_lo = int(fc) #sets Fc
-sdr.sample_rate = int(fs) #Filtercut off
-sdr.rx_rf_bandwidth = int(bandwidth) #play with this
+sdr.sample_rate = int(fs) #sets sampling rate
+sdr.rx_rf_bandwidth = int(bandwidth) 
 sdr.rx_buffer_size = int(bufferSize)
-data = sdr.rx()
-dataSet = np.zeros(int(samples*bufferSize), dtype=np.complex64)
-startTime = time.time()
-for i in range(int(samples)):
+dataSet = np.zeros(int(samples*bufferSize), dtype=np.complex64) #creates an array of zeros of complex 64 bit numbers, to allocate space
+startTime = time.time() #Notes start time 
+for i in range(int(samples)): #collects samples until it has reached the right number of samples
     dataSet[i*bufferSize:(i+1)*bufferSize] = sdr.rx()
-    # time.sleep(1/(fs))
 
-# while ((startTime-time.time())<runTime):
-#     dataSet = np.concatenate((dataSet, sdr.rx()), axis=0)
-#     time.sleep(1/(fs)*bufferSize)
-# np.save("/home/goose/Documents/wpi/ece-331x/ece331x/module1/data")
-endTime = time.time()
+np.save("/home/goose/Documents/wpi/ece-331x/module1/data") #saves data
+endTime = time.time() #Notes end time so that we can know how long it ran for 
 print(f"done in {endTime-startTime}s")
+#Creates spectrogram 
 plt.specgram(dataSet, Fs=fs)
 plt.xlabel("Time(s)")
 plt.ylabel("Frequency(Hz)")

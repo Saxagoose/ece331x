@@ -5,7 +5,7 @@ from scipy import signal
 
 #Steps 
 #   Collect Data
-#       Course Frequency Correction 
+#       coarse  Frequency Correction 
 #       Make sure gain is good
 #   Implement DPLL
 #       Basically a pid loop
@@ -61,24 +61,38 @@ plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale
 ##Software Correct the data
 #Find the center frequency 
 N = len(signal)
-fft_data = np.fft.fft(signal)
-fft_freqs = np.fft.fftfreq(N, d=1/fs)
-peak_index = np.argmax(np.abs(fft_data))
-frequency_offset = fft_freqs[peak_index]
-print(f"Estimated Frequency Offset: {frequency_offset} Hz")
+# fft_data = np.fft.fft(signal)
+# fft_freqs = np.fft.fftfreq(N, d=1/fs)
+# peak_index = np.argmax(np.abs(fft_data))
+# frequency_offset = fft_freqs[peak_index]
+# print(f"Estimated Frequency Offset: {frequency_offset} Hz")
 
-#Correct the center frequency offset with complex exponential function (in class 11/13)
-time_array = np.arange(N) / fs
-correction_signal = np.exp(-1j * 2 * np.pi * frequency_offset * time_array)
-signal = signal * correction_signal
+# #Correct the center frequency offset with complex exponential function (in class 11/13)
+# time_array = np.arange(N) / fs
+# correction_signal = np.exp(-1j * 2 * np.pi * frequency_offset * time_array)
+# signal = signal * correction_signal
 
-#IQ plot after course freq correction
+signal_squared = signal ** 2
+psd = np.fft.fftshift(np.abs(np.fft.fft(signal_squared)))
+f = np.linspace(-fs / 2.0, fs / 2.0, len(psd), endpoint=False)
+max_freq = f[np.argmax(psd)]
+coarse_offset = max_freq / 2.0
+print(f"Estimated frequency offset (coarse, Hz): {coarse_offset}")
+
+Ts = 1.0 / fs
+t = np.arange(len(signal)) * Ts
+
+# Correct original (unsquared) signal
+signal = signal * np.exp(-1j * 2 * np.pi * coarse_offset * t / 2.0)
+
+
+#IQ plot after coarse  freq correction
 plt.subplot(2, 2, 2)
 # plt.scatter(np.real(signal), np.imag(signal), color='blue', marker='o', s=3, alpha=0.01) # Use scatter plot for points
 plt.hexbin(np.real(signal), np.imag(signal), gridsize=1000)
 plt.xlabel("Real Axis")
 plt.ylabel("Imaginary Axis")
-plt.title("IQ Plot of Course Frequency Corrected Samples")
+plt.title("IQ Plot of coarse  Frequency Corrected Samples")
 plt.grid(True)
 plt.axhline(0, color='black',linewidth=0.5)
 plt.axvline(0, color='black',linewidth=0.5)
@@ -112,7 +126,7 @@ plt.subplot(2, 2, 3)
 plt.hexbin(np.real(out), np.imag(out), gridsize=1000)
 plt.xlabel("Real Axis")
 plt.ylabel("Imaginary Axis")
-plt.title("IQ Plot of Fine and Course Frequency Corrected Samples")
+plt.title("IQ Plot of Fine and coarse  Frequency Corrected Samples")
 plt.grid(True)
 plt.axhline(0, color='black',linewidth=0.5)
 plt.axvline(0, color='black',linewidth=0.5)
@@ -136,7 +150,7 @@ plt.scatter(np.real(out), np.imag(out), color='blue', marker='o', s=3, alpha=0.0
 # plt.hexbin(np.real(out), np.imag(out), gridsize=1000)
 plt.xlabel("Real Axis")
 plt.ylabel("Imaginary Axis")
-plt.title("IQ Plot of Fine and Course Frequency Corrected and Filtered Samples")
+plt.title("IQ Plot of Fine and coarse  Frequency Corrected and Filtered Samples")
 plt.grid(True)
 plt.axhline(0, color='black',linewidth=0.5)
 plt.axvline(0, color='black',linewidth=0.5)

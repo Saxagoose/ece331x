@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio
+from scipy import signal
+
 #Steps 
 #   Collect Data
 #       Course Frequency Correction 
@@ -18,15 +20,29 @@ bufferSize = 2**16 #Buffer size
 runTime = 30 #Run time
 bandwidth = 26e4 #Bandwidth 
 samples = runTime*fs/bufferSize #number of sample buffers
-iq_graph_axis = [-1000,1000,1000,-1000]
+graph_range = 300
+iq_graph_axis = [-graph_range, graph_range, -graph_range, graph_range]
+numtaps = 201
+cutoff_lp = 16e3
+cutoff_bp = [1.2e4, 1.54e4]
+
+# lowpass_filter = signal.firwin(numtaps, cutoff_lp, fs=fs)
+bandpass_filter = signal.firwin(numtaps, cutoff_bp, fs=fs, pass_zero=False)
+
 
 #Import data
 signal = np.load("/home/goose/Documents/wpi/ece-331x/module4/data0.npy")
+
 
 time_array = np.arange(len(signal))/fs
 
 #select data
 signal = signal[:int(5*fs)]
+
+# Filter data 
+signal = np.convolve(bandpass_filter, signal)
+plt.specgram(signal, 2048, fs)
+plt.show()
 
 plt.figure(figsize=(20, 20), num=("IQ Plots"))
 #IQ plot of raw data

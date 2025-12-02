@@ -25,15 +25,16 @@ fft_freqs = np.fft.fftfreq(N, d=1/Fs)
 peak_index = np.argmax(np.abs(fft_data))
 frequency_offset = fft_freqs[peak_index]
 print(f"Estimated Frequency Offset: {frequency_offset} Hz")
+eye_frequency_offset = 3.8e4 # Eyeballed frequency offset value 
+print(f'Eyeballed Frequency Offset: {eye_frequency_offset} Hz')
 
-frequency_offset = 3.8e4 # Eyeballed frequency offset value 
 
 # Correct frequency offset with complex exponential function (in class 11/13)
 time_array = np.arange(N) / Fs
 correction_signal = np.exp(-1j * 2 * np.pi * frequency_offset * time_array)
 corrected_signal = signal * correction_signal
 
-corrected_signal = hw_corrected_signal
+# corrected_signal = hw_corrected_signal
 
 # Calculate the data arrays to plot
 magnitude_array = np.abs(signal) #Takes the magnitude of the complex numbers in the data set

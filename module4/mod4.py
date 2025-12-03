@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import imageio
 from scipy import signal
 
 #Steps 
@@ -41,8 +40,6 @@ signal = signal[:int(5*fs)]
 
 # Filter data 
 signal = np.convolve(bandpass_filter, signal)
-plt.specgram(signal, 2048, fs)
-plt.show()
 
 plt.figure(figsize=(20, 20), num=("IQ Plots"))
 #IQ plot of raw data
@@ -59,19 +56,8 @@ plt.axvline(0, color='black',linewidth=0.5)
 plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale
 
 ##Software Correct the data
-#Find the center frequency 
+#Coarse Frequency Correction-Fiona 
 N = len(signal)
-# fft_data = np.fft.fft(signal)
-# fft_freqs = np.fft.fftfreq(N, d=1/fs)
-# peak_index = np.argmax(np.abs(fft_data))
-# frequency_offset = fft_freqs[peak_index]
-# print(f"Estimated Frequency Offset: {frequency_offset} Hz")
-
-# #Correct the center frequency offset with complex exponential function (in class 11/13)
-# time_array = np.arange(N) / fs
-# correction_signal = np.exp(-1j * 2 * np.pi * frequency_offset * time_array)
-# signal = signal * correction_signal
-
 signal_squared = signal ** 2
 psd = np.fft.fftshift(np.abs(np.fft.fft(signal_squared)))
 f = np.linspace(-fs / 2.0, fs / 2.0, len(psd), endpoint=False)
@@ -107,9 +93,9 @@ freq_log = []
 error_log = []
 phase_log=[]
 phase = 0
-freq = 0
-alpha = 0.129 
-beta = 0.00932
+freq = 0 #0.153, 0.00928
+alpha = 0.145 #0.129, 0.145 
+beta = 0.00932 #0.00932
 for i in range(N):
     out[i] = signal[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
     error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
@@ -119,7 +105,9 @@ for i in range(N):
     # freq_log.append(freq * fs / (2*np.pi) / 8) # convert from angular velocity to Hz for logging
     phase += freq + (alpha * error)
 
+out = out * np.exp(-1j*np.pi/2)
 
+np.save("/home/goose/Documents/wpi/ece-331x/module4/filtered_data.npy", out)
 #IQ plot after fine freq correction
 plt.subplot(2, 2, 3)
 # plt.scatter(np.real(out), np.imag(out), color='blue', marker='o', s=3, alpha=0.01) # Use scatter plot for points
@@ -132,33 +120,13 @@ plt.axhline(0, color='black',linewidth=0.5)
 plt.axvline(0, color='black',linewidth=0.5)
 plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale
 
-# Manual shifting and filtering 
-for i in range(N):
-    if (np.angle(out[i]) > (np.arctan(187/582) + np.pi) or np.angle(out[i]) < (np.arctan(-187/582) + np.pi)) and (np.abs(out[i]) > 450): #between the angles that there is the highest density of points and is above a certian mag around pi rad
-        out[i] = np.abs(out[i])*np.exp(1j*np.pi)
-    elif(np.angle(out[i]) > (np.arctan(187/582)) or np.angle(out[i]) < (np.arctan(-187/582))) and (np.abs(out[i]) > 450): #points close to 0 rad
-        out[i] = np.abs(out[i])*np.exp(1j*0)
-    else: # otherwise discard
-        out[i] = 0 
-
-
-
-
-#IQ plot after everything freq correction
-plt.subplot(2, 2, 4)
-plt.scatter(np.real(out), np.imag(out), color='blue', marker='o', s=3, alpha=0.01) # Use scatter plot for points
-# plt.hexbin(np.real(out), np.imag(out), gridsize=1000)
-plt.xlabel("Real Axis")
-plt.ylabel("Imaginary Axis")
-plt.title("IQ Plot of Fine and coarse  Frequency Corrected and Filtered Samples")
-plt.grid(True)
-plt.axhline(0, color='black',linewidth=0.5)
-plt.axvline(0, color='black',linewidth=0.5)
-plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale 
 plt.show()
 
-plt.plot(time_array, error_log, ".-")
+time_array = np.arange(len(error_log))/fs
+
+plt.plot(time_array, error_log)
 plt.xlabel("Time(s)")
 plt.ylabel("Error")
 plt.title("Error vs Time of Costas Loop")
+
 plt.show()

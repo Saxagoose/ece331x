@@ -102,12 +102,12 @@ for i in range(N):
     error_log.append(error)
     # Advance the loop (recalc phase and freq offset)
     freq += (beta * error)
-    # freq_log.append(freq * fs / (2*np.pi) / 8) # convert from angular velocity to Hz for logging
     phase += freq + (alpha * error)
+    phase_log.append(phase)
 
+#static error correction by delaying it 90 degrees
 out = out * np.exp(-1j*np.pi/2)
 
-np.save("/home/goose/Documents/wpi/ece-331x/module4/filtered_data.npy", out)
 #IQ plot after fine freq correction
 plt.subplot(2, 2, 3)
 # plt.scatter(np.real(out), np.imag(out), color='blue', marker='o', s=3, alpha=0.01) # Use scatter plot for points
@@ -122,11 +122,13 @@ plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale
 
 plt.show()
 
+#X-axis for phase error 
 time_array = np.arange(len(error_log))/fs
 
-plt.plot(time_array, error_log)
+# Plot Phase Error Vs Time 
+plt.plot(time_array, phase_log)
 plt.xlabel("Time(s)")
-plt.ylabel("Error")
-plt.title("Error vs Time of Costas Loop")
+plt.ylabel("Phase Error")
+plt.title("Phase Error vs Time of Costas Loop")
 
 plt.show()

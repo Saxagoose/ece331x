@@ -21,10 +21,10 @@ sdr.rx_buffer_size = int(bufferSize)
 # sdr.gain_control_mode_chan0 = "manual"
 # sdr.rx_hardwaregain_chan0 = gain
 time.sleep(0.25)
-dataSet = np.zeros(int(samples*bufferSize), dtype=np.complex64) #creates an array of zeros of complex 64 bit numbers, to allocate space
+dataSet = np.zeros(int(bufferSize), dtype=np.complex64) #creates an array of zeros of complex 64 bit numbers, to allocate space
 dataSet = sdr.rx()
 
-np.save("/home/goose/Documents/wpi/ece-331x/module5/data0", dataSet) #saves data
+np.save("/home/goose/Documents/wpi/ece-331x/module5/data1", dataSet) #saves data
 
 #spectrogram
 plt.specgram(dataSet, Fs=fs, NFFT=4096)

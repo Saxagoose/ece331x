@@ -85,7 +85,7 @@ plt.axvline(0, color='black',linewidth=0.5)
 plt.axis(iq_graph_axis) # makes the real and imaginary axes have the same scale
 
 
-## Correct Phase Error, loop from pysdr.org by Dr. Marc Lichtman
+## Correct Phase Error, loop from pysdr.org bby Dr. Marc Lichtman
 phase = 0
 freq = 0
 out = np.zeros(N, dtype=np.complex64)
@@ -105,7 +105,7 @@ for i in range(N):
     phase += freq + (alpha * error)
     phase_log.append(phase)
 
-#static error correction by delaying it 90 degrees
+#static error correction by delbaying it 90 degrees
 out = out * np.exp(-1j*np.pi/2)
 
 #IQ plot after fine freq correction
@@ -132,3 +132,6 @@ plt.ylabel("Phase Error")
 plt.title("Phase Error vs Time of Costas Loop")
 
 plt.show()
+
+
+#2MHz

@@ -17,6 +17,7 @@ np.set_printoptions(threshold=sys.maxsize)
 
 #load data
 signal = np.load("/home/goose/Documents/wpi/ece-331x/module5/data1.npy", "r")
+# signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy", "r")
 
 #Lowpass filter
 # signal = p1Func.lowpass(1e6, 101, fs, signal)

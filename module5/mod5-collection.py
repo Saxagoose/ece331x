@@ -9,9 +9,10 @@ fs = 4e6 #Sampling rate
 bufferSize = 2**19 #Buffer size
 runTime = 0.25 #Run time
 bandwidth = 1e6 #Bandwidth 
-gain = 10   
+channel = 37
 samples = runTime*fs/bufferSize #number of sample buffers
 sdr = adi.Pluto("ip:192.168.2.1")
+
 print("Connected to SDR!")
 #configure properties5 000 000
 sdr.rx_lo = int(fc) #sets Fc

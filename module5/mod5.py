@@ -5,13 +5,15 @@ import mod5p1func as p1Func
 import sys
 
 # Variables 
-fc = 2404e6 #center freq
-fs = 20e6 #Sampling rate
-bufferSize = 2**23 #Buffer size
+fc = 2402e6 #center freq
+fs = 4e6 #Sampling rate
+bufferSize = 2**19 #Buffer size
 runTime = 0.25 #Run time
 bandwidth = 1e6 #Bandwidth 
+channel = 37
 
 np.set_printoptions(threshold=sys.maxsize)
+
 
 #load data
 signal = np.load("/home/goose/Documents/wpi/ece-331x/module5/data1.npy", "r")
@@ -24,7 +26,6 @@ total_time = np.linspace(0, (len(signal)/fs), (len(signal)-1))
 raw_phase_diff = p1Func.phaseDiff(signal, 2)
 
 bits = p1Func.convertToBits(raw_phase_diff)
-bits = np.append(bits, [0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,0,1,0,1,1,1,0,0,0,1])
-print(p1Func.findAdPackets(bits))
+print(p1Func.packetList(bits))
 plt.plot(bits[:1000])
 plt.show()

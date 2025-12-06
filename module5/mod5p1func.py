@@ -16,6 +16,7 @@ def phaseDiff(data, downsample_ratio=1):
     phase_diff = np.diff(phase_unwrap)
     return phase_diff
 
+
 #Converts data to bits
 def convertToBits(data):
     return np.greater(data, 0)
@@ -38,3 +39,12 @@ def findBitPattern(data_stream, pattern):
 def findAdPackets(data):
     preamble_and_aa = np.array([0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,0,1,0,1,1,1,0,0,0,1],dtype=bool)
     return findBitPattern(data, preamble_and_aa)
+
+# Creates a list of packets in bitstrings
+def packetList(data):
+    adPos = findAdPackets(data)
+    packetList = []
+    for pos in adPos:
+        packet = bs.Bits(data[pos:(pos+300*8)])
+        packetList.append(packet) #Most packets should fit within this size otherwise they are massive chained together 
+    return  packetList 

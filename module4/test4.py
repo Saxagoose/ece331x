@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 # Read the data from the file
-signal = np.load("/Users/fionaprendergast/ECE331X/moredata/data2.npy")
+signal = np.load("/Users/fionaprendergast/ECE331X/data0.npy")
 
 # Properties
 Fs = 512e3
@@ -63,8 +63,9 @@ coarse_corrected_signal = signal * np.exp(-1j*2*np.pi*max_freq*t/2.0)
 N = len(coarse_corrected_signal)
 phase = np.zeros(N)
 freq = np.zeros(N)
-alpha = 0.332
-beta = 0.0732
+error_log = np.zeros(N)          # <--- add this
+alpha = 0.132
+beta = 0.00932
 out = np.zeros(N, dtype=np.complex64)
 
 print("Running Costas Loop...")
@@ -74,8 +75,9 @@ for i in range(N):
     if i % 50000 == 0:  # Progress indicator
         print(f"Progress: {i}/{N} ({100*i/N:.1f}%)")
     
-    out[i] = coarse_corrected_signal[i] * np.exp(-1j*phase[i])
-    error = np.real(out[i]) * np.imag(out[i])
+    out[i] = coarse_corrected_signal[i] * np.exp(-1j * phase[i])
+    error = np.real(out[i]) * np.imag(out[i])   # Costas phase error for BPSK
+    error_log[i] = error                        # <--- store it
     
     if i < N-1:  # Don't go out of bounds
         freq[i+1] = freq[i] + (beta * error)
@@ -86,7 +88,7 @@ for i in range(N):
 
 print("Costas Loop complete!")
 
-# Plot frequency estimate
+# Plot frequency estimate (Hz)
 plt.figure()
 plt.plot(freq * Fs / (2*np.pi), '.-')
 plt.xlabel("Sample Index")
@@ -94,6 +96,25 @@ plt.ylabel("Estimated Frequency Offset (Hz)")
 plt.title("Costas Loop Frequency Estimate Over Time")
 plt.grid(True)
 plt.show()
+
+# Plot Costas loop error over time
+plt.figure(figsize=(12,6))
+plt.plot(error_log, ".-")
+plt.xlabel("Sample Index")
+plt.ylabel("Costas Error (Re·Im)")
+plt.title("Costas Loop Phase Error Signal")
+plt.grid(True)
+plt.show()
+
+# Optional: plot estimated phase vs time
+plt.figure()
+plt.plot(phase, ".-")
+plt.xlabel("Sample Index")
+plt.ylabel("Estimated Phase (rad)")
+plt.title("Costas Loop Phase Estimate")
+plt.grid(True)
+plt.show()
+
 
 # -------------------------
 # IQ Plot AFTER Costas loop
@@ -113,7 +134,7 @@ plt.show()
 # Symbol timing recovery and decoding
 # -------------------------
 # Test different symbol rate values 
-samples_per_symbol = 64  
+samples_per_symbol = 32  
 
 # Simple decimation approach (for initial testing)
 # Skip to middle of Costas loop output to let it settle

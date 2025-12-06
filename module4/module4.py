@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import signal
 
 # Read the data from the file that we saved it to 
 signal = np.load("/Users/fionaprendergast/ECE331X/data0.npy") # Change path for your computer
@@ -7,6 +8,16 @@ signal = np.load("/Users/fionaprendergast/ECE331X/data0.npy") # Change path for 
 # Properties of the data we collected 
 Fs = 512e3 # Sample rate
 Fc = 915000000 # Center Frequency 915 MHz
+
+numtaps = 251
+cuttoff = 32000
+cuttoff_bp = [1.15e4, 1.73e4]
+graph_range = 700
+iq_graph_axis = [-graph_range, graph_range, -graph_range, graph_range]
+
+# Apply a bandpass filter to the signal
+bandpass_filter = signal.firwin(numtaps, cuttoff_bp, fs=Fs, pass_zero=False)
+filtered_signal = np.convolve(signal, bandpass_filter)
 
 # Get the part of the signal that has data that we want
 print("Chopped up the signal to get what we want")

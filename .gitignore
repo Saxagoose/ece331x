@@ -11,3 +11,8 @@ module4/data0.npy.zip
 module4/data2.npy
 module4/data3.npy
 module4/data4.npy
+module4/filtered_data.npy
+module4/filtered_data.npy.zip
+*.zip
+*.npy
+module5/__pycache__/mod5p1func.cpython-313.pyc

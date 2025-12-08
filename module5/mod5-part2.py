@@ -26,29 +26,37 @@ data = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy", "r")
 raw_phase_diff = p1Func.phaseDiff(data, 2)
 bits = p1Func.convertToBits(raw_phase_diff)
 packet_list, adStartPos = p1Func.packetList(bits)
-# print(packet_list)
+print(packet_list[1].bin)
+print(packet_list[1].length)
+
+while True:
+    user_input = input("Enter 'q' to quit or press Enter to continue: ")
+    if user_input.lower() == 'q':
+        break
 
 dewhitened_packets = []
 valid_packets = []
 crcs = []
 
 # Each position in adStartPos is the start of a packet
-for start_pos in adStartPos:
+for packet in packet_list:
     print("\n")
     # Extract packet bits (assume max packet size of 300 bytes = 2400 bits)
     # Or use whatever max size you determined
-    end_pos = start_pos + 300 * 8  # 300 bytes * 8 bits/byte
+    # end_pos = start_pos + 300 * 8  # 300 bytes * 8 bits/byte
     
-    if end_pos > len(bits):
-        end_pos = len(bits)
+    # if end_pos > len(bits):
+    #     end_pos = len(bits)
     
-    packet_bits = bits[start_pos:end_pos]
+    # packet_bits = bits[start_pos:end_pos]
     
     # Skip preamble (1 byte = 8 bits) and access address (4 bytes = 32 bits)
     # Total: 40 bits
-    pdu_bits = packet_bits[40:]
+    pdu_bits = packet[40:]
+
+    # ================ DOUBLE CHECK THE ADDRESS ===================
     # Extract access address (4 bytes after 1-byte preamble)
-    access_addr_bits = packet_bits[8:40]  # bits 8-39
+    access_addr_bits = packet[8:40]  # bits 8-39
     access_addr = 0
     for i, bit in enumerate(access_addr_bits):
         access_addr |= (int(bit) << i)
@@ -57,6 +65,7 @@ for start_pos in adStartPos:
     if access_addr != 0x8E89BED6:
         print("WARNING: Access address mismatch!")
     # print(f"Preamble and AA skipped: {packet_bits[:40]}")
+    # ==============================================================
     
     # Convert bits to bytes (LSB first for BLE)
     whitened_pdu = bytearray()
@@ -69,8 +78,8 @@ for start_pos in adStartPos:
 
     # Dewhiten data 
     channel = 37
-    dewhitened_pdu = p1Func.dewhiten(whitened_pdu, channel)
-    dewhitened_packets.append(dewhitened_pdu)
+    dewhitened_packet = p1Func.dewhiten(packet, channel)
+    dewhitened_packets.append(dewhitened_packet)
     
     # # Dewhiten data 
     # channel = 37 
@@ -78,17 +87,21 @@ for start_pos in adStartPos:
 	# # Based on the core specification it is 7 bit lfsr with polynomial x^7 + x^4 + 1
     # dewhitened_pdu = p1Func.dewhiten(whitened_pdu, channel)
     # dewhitened_packets.append(dewhitened_pdu)
-    pdu_type = dewhitened_pdu[0] & 0x0F
-    length = dewhitened_pdu[1]
-    pdu_with_crc = dewhitened_pdu[2:length + 3]  # PDU Type (1 byte) + Length (1 byte) + Payload + CRC
+    pdu_type = dewhitened_packet[0] & 0x0F
+    length = dewhitened_packet[1]
+    pdu_with_crc = dewhitened_packet[:length+3]  # PDU Type (1 byte) + Length (1 byte) + Payload + CRC
+    pdu_without_crc = dewhitened_packet[:length]
+    crc = dewhitened_packet[length:length+3]
     # print(f"PDU Type: 0x{pdu_type:X} (should be 0-7 for advertising)")
-    print(f"Payload Length: {length} bytes (should be ~6-37)")
-    print(f"Rest of PDU + crc length: {len(pdu_with_crc)-3} bytes")
-    # print(f"Packet total length: {len(dewhitened_pdu)} bytes")
+    print(f"Payload Length: {length} bytes")
+    print(f"Rest of PDU + crc length: {len(pdu_with_crc)} bytes")
+    print(f"Packet total length: {len(dewhitened_packet)} bytes")
 
-    # get the length of the payload from the second byte
-    # length = dewhitened_pdu[1]
-    # pdu_with_crc = dewhitened_pdu[2:length + 3]  # PDU Type (1 byte) + Length (1 byte) + Payload + CRC
+    # TRY PROVIDED CODE INSTEAD OF MINE
+    check_crc = p1Func.check_CRC(pdu_without_crc, crc)
+    print(f"CRC valid? {check_crc}")
+    # print(f"Calculated CRC: 0x{calc_crc:06X}")
+    
 
     # Check CRC
     print(f"Dewhitened packet: {pdu_with_crc.hex()}")
@@ -101,15 +114,15 @@ for start_pos in adStartPos:
     # print(f"CRC valid: {valid_crc}")
     # print(f"Received CRC: 0x{received_crc:06X}")
 
-    if valid_crc:
-        # Parse the packet
-        pdu_type = pdu_with_crc[0] & 0x0F
-        length = pdu_with_crc[1]
-        payload = pdu_with_crc[2:2+length]
+    # if valid_crc:
+    #     # Parse the packet
+    #     pdu_type = pdu_with_crc[0] & 0x0F
+    #     length = pdu_with_crc[1]
+    #     payload = pdu_with_crc[2:2+length]
         
-        print(f"PDU Type: 0x{pdu_type:X}")
-        print(f"Payload length: {length}")
-        print(f"Payload: {payload.hex()}")
+    #     print(f"PDU Type: 0x{pdu_type:X}")
+    #     print(f"Payload length: {length}")
+    #     print(f"Payload: {payload.hex()}")
 	
 	 
 

@@ -19,15 +19,19 @@ downsampleRatio = 2 #Ratio for down sampling data
 
 
 #load data
-signal = np.load("/home/goose/Documents/wpi/ece-331x/module5/data1.npy", "r")
-# signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy", "r")
+# signal = np.load("/home/goose/Documents/wpi/ece-331x/module5/data1.npy", "r")
+signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy", "r")
 
 
 #Find phase difference of the data, note: downsamples 
 rawPhaseDiff = p1Func.phaseDiff(signal, downsampleRatio)
+# print(rawPhaseDiff)
+# print(np.size(rawPhaseDiff))
 
 #Convert signal to bit stream
 bits = p1Func.convertToBits(rawPhaseDiff)
+# Basically return a boolean array where each True or False is if the phase diff is > 0 or not
+# print(bits)
 
 #List of advertising packets and their starting positions
 packetList, adStartPos = p1Func.packetList(bits)

@@ -77,7 +77,7 @@ def dewhiten(packet, channel=37):
     return dewhitened
 
 def checkCRC(packet):
-    if len(packet) < 5: # Min 2 byte header and 3 byte CRC
+    if len(packet) < 7: # Min 2 byte header, 2 byte pauload and 3 byte CRC
         return False
     
     payload = packet[:-3]
@@ -106,3 +106,25 @@ def checkCRC(packet):
     print(f"CRC: 0x{crc:06X} vs. Received CRC: 0x{received_crc:06X}")
             
     return valid_crc, received_crc
+
+def get_CRC(bits):
+	# my numpy array implementation was 10x slower, I don't know why
+	# this may be easier to read than the whitening, input data is handled differently
+	
+	exponents = [0,1,3,4,6,9,10] # from core spec, final tap is taken care of with new bit
+	
+	# setup registers
+	state = 6*[1,0,1,0] # from core spec
+	
+	for bit in bits:
+		new_bit = state[-1] ^ bit
+		state = [0] + state[:-1]
+		if new_bit == 0: continue
+		for gate in exponents:
+			state[gate] = state[gate]^1
+		
+	return state[::-1]
+
+def check_CRC(bits, crc):
+	a = get_CRC(bits)
+	return np.array_equal(a, crc)

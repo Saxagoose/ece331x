@@ -33,8 +33,6 @@ def findBitPattern(data_stream, pattern):
     for pos in positions:
         pos_array.append(pos)
     return pos_array
-	
-
 
 #Finds the location of advertising packets 
 def findAdPackets(data):
@@ -54,7 +52,10 @@ def packetList(data):
 def dewhiten(packet, channel=37): 
     # Set the polynomial and initial state
     fpoly = [7, 4]
-    initial_state = [int(b) for b in format(0x40 | (channel & 0x3f), '07b')]
+
+    channel_bits = format(channel & 0x3F, '06b')  # Get 6-bit channel number
+    initial_state = [1] + [int(b) for b in channel_bits]
+    # initial_state = [int(b) for b in format(0x40 | (channel & 0x3f), '07b')]
 
     # Create the LFSR
     lfsr = pylfsr.LFSR(initstate=initial_state, fpoly=fpoly)
@@ -82,20 +83,26 @@ def checkCRC(packet):
     payload = packet[:-3]
     received_crc = int.from_bytes(packet[-3:], byteorder='little')
 
-    # Calculate 24-bit CRC
-    crc = 0x555555
+    # Calculate 24-bit CRC according to BLE spec
+    # Polynomial: x^24 + x^10 + x^9 + x^6 + x^4 + x^3 + x + 1
+    # Which is 0x00065B (when represented without the x^24 term)
+    crc = 0x555555  # Initial value
     polynomial = 0x00065B
 
     # Loop through each byte in the payload
     for byte in payload:
         # xor byte into the lsb of crc
-        crc ^= byte
+        crc ^= (byte << 16)
         for _ in range(8):
             # shift right and apply polynomial if lsb is 1
-            if crc & 0x000001:
-                crc = (crc >> 1) ^ polynomial
+            if crc & 0x800000:
+                crc = ((crc << 1) ^ polynomial) & 0xFFFFFF
             else:
                 # just shift right if lsb is 0
-                crc >>= 1
+                crc = (crc << 1) & 0xFFFFFF
+    
+    valid_crc = ((crc & 0xFFFFFF) == received_crc)
+    print(f"CRC valid? {valid_crc}")
+    print(f"CRC: 0x{crc:06X} vs. Received CRC: 0x{received_crc:06X}")
             
-    return (((crc & 0xFFFFFF) == received_crc), received_crc)
+    return valid_crc, received_crc

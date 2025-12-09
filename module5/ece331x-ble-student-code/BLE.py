@@ -24,17 +24,21 @@ def get_bit_stream(data_stream, downsample_ratio = 2):
     #############################################################
 	
 	# Step 1: Extract the phase of the signal and make it continous
+	continuous_phase = np.unwrap(np.angle(data_stream))
 	
 	
-	 # Step 2: Downsample the phase data to reduce complexity
+	# Step 2: Downsample the phase data to reduce complexity
 	downsampled_phase = continuous_phase[::downsample_ratio]
 	
 	
 	
     # Step 3: Compute the phase difference (frequency changes)
+	freq_data = np.diff(downsampled_phase)
 	
 	
 	# Step 4: Plot the phase differential
+	# ph.plot_data(freq_data, "Phase Differential", "Sample Index", "Phase Difference")
+	print("Pretend like we plotted the phase differential here")
 	
 	
 	#############################################################
@@ -69,7 +73,7 @@ def whiten_dynamic(bits, channel=38):
     #############################################################
     #############################################################
     #############################################################
-	exponents = [] # from core spec
+	exponents = [0, 4, 7] # from core spec
 	#############################################################
     #############################################################
     #############################################################
@@ -93,7 +97,8 @@ def whiten_dynamic(bits, channel=38):
     #############################################################
     #############################################################
 		# add bit to the output array
-		
+		out_bit = state[-1]
+		out_array = np.append(out_array, out_bit)
 	#############################################################
     #############################################################
     #############################################################

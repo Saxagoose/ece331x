@@ -96,12 +96,13 @@ def dewhiten(packet, channel=37):
     
     return dewhitened
 
-def checkCRC(packet,received_crc):
+def checkCRC(packet,received_crc=None):
     if len(packet) < 7: # Min 2 byte header, 2 byte pauload and 3 byte CRC
         return False
     
     payload = packet[:-3]
-    # received_crc = int.from_bytes(packet[-3:], byteorder='little')
+    if received_crc is None:
+        received_crc = packet[-3:]
 
     # Calculate 24-bit CRC according to BLE spec
     # Polynomial: x^24 + x^10 + x^9 + x^6 + x^4 + x^3 + x + 1
@@ -125,7 +126,7 @@ def checkCRC(packet,received_crc):
     print(f"CRC valid? {valid_crc}")
     print(f"CRC: 0x{crc:06X} vs. Received CRC: 0x{received_crc.hex().upper()}")
             
-    return valid_crc, crc
+    return valid_crc
 
 def get_CRC(bits):
 	# my numpy array implementation was 10x slower, I don't know why
@@ -153,32 +154,65 @@ def check_CRC(bits, crc):
     print(f"Calculated CRC: {ahex}, {abin} \nReceived CRC: {crc.hex()}")
     return np.array_equal(a, crc)
 
-def reverse_bits(x):
-    return int('{:08b}'.format(x)[::-1], 2)
+#-----------------------------------------------------------------------------------------
 
-def dewhiten_ble(packet, channel=38):
-    # build BLE seed
-    lfsr = (channel & 0x3F) | 0x40  # BLE whitening seed
-    out = bytearray()
+def dewhiten(bits, channel=38): 
+	return whiten_dynamic(bits, channel)
 
-    for b in packet:
-        wb = 0
-        for i in range(8):
-            w = lfsr & 1
-            wb |= (w << i)             # whitening applied LSB->MSB (BLE)
-            newbit = ((lfsr >> 6) ^ (lfsr >> 3)) & 1
-            lfsr = ((lfsr >> 1) | (newbit << 6)) & 0x7F
-        out.append(b ^ wb)
+#-----------------------------------------------------------------------------------------
 
-    return out
+def whiten(bits, channel=38): 
+	return whiten_dynamic(bits, channel)
 
-# full correct wrapper for example data:
-def dewhiten_wrapper(whitened_bytes, channel=38):
-    # 1 – reverse bits to convert MSB text to OTA LSB order
-    pkt = [reverse_bits(b) for b in whitened_bytes]
+#-----------------------------------------------------------------------------------------
 
-    # 2 – run BLE dewhitening
-    dw = dewhiten_ble(pkt, channel)
-
-    # 3 – reverse back for comparison with human-readable expected output
-    return [reverse_bits(b) for b in dw]
+def whiten_dynamic(bits, channel=38):
+	# This part of the code should be done using an LFSR Loop
+	
+	# setup polynomial
+	polynomial = 8*[0]
+	
+	#############################################################
+    #############################################################
+    #############################################################
+    #############################################################
+	exponents = [7,4,0] # from core spec
+	#############################################################
+    #############################################################
+    #############################################################
+    #############################################################
+    
+    
+	
+	for x in exponents: polynomial[x] = 1
+	working_poly = np.array(polynomial[:-1])
+	
+	# setup registers
+	channel_array = [int(x) for x in format(channel, "0>6b")]
+	state = np.array([1] + channel_array, dtype=int) # from core spec
+	out_array = np.array([], dtype=int)
+	
+	# LFSR loop
+	for x in range(len(bits)):
+	
+	#############################################################
+    #############################################################
+    #############################################################
+    #############################################################
+		# add bit to the output array
+		out_bit = bits[x] ^ state[-1]
+	#############################################################
+    #############################################################
+    #############################################################
+    #############################################################
+		
+		# add a 0 to the front of the state array
+		# this will be changed to a 1 if needed by the xor
+		state = np.insert(state[:-1], 0, 0)
+		
+		# feedback is done as a single xor step
+		xor_array = out_bit*working_poly
+		state = np.bitwise_xor(state, xor_array)
+		
+		
+	return np.bitwise_xor(bits, out_array)

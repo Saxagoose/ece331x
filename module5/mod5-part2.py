@@ -120,6 +120,8 @@ for start_pos, packet in zip(adStartPos, packet_list):
 
     # ================ DOUBLE CHECK THE ADDRESS ===================
     # Extract access address (4 bytes after 1-byte preamble)
+    # first_5_bytes = packet_bits[:40]
+    # print(f"Preamble + Access Address bits: {first_5_bytes}")
     access_addr_bits = packet[8:40]  # bits 8-39
     access_addr = 0
     for i, bit in enumerate(access_addr_bits):

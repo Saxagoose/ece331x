@@ -186,8 +186,11 @@ def ad_packet_printer(decoded_packet, time):
 #-----------------------------------------------------------------------------------------
 
 def decode_ad_packet(packet_bits, channel=38):
-	if len(packet_bits) < 300: return [] # not amazing but it doesn't crash
+	if len(packet_bits) < 300:
+		print("packet too short")
+		return [] # not amazing but it doesn't crash
 	
+
 	sections = {}
 	unwhite = dewhiten(packet_bits, channel) # over dewhiten so I only have to call it once
 	
@@ -237,9 +240,9 @@ def decode_ad_packet(packet_bits, channel=38):
 	sections["CRC"] = crc_pass
 	sections["channel"] = channel
 	if crc_pass == "fail":
-		#print("failed crc channel %s" % channel)
+		print("failed crc channel %s" % channel)
 		pass
-		#return [] # I can do a fail check in the printing function
+		return [] # I can do a fail check in the printing function
 	return sections
 
 
@@ -279,6 +282,7 @@ def process_ad_packet_chunks(chunks, channel):
 	if channel not in [37,38,39]: return 0
 	found_packets = []
 	for chunk in chunks:
+		print("Decoding packet on channel %s" % channel)
 		out = decode_ad_packet(chunk, channel)
 		found_packets = found_packets + [out]
 	
@@ -317,5 +321,5 @@ def find_bit_pattern(data_stream, pattern):
 		else:
 			out_array *= ~check_array[i:i+out_len]
 	
-	
+	print("find bit pattern found %s occurrences" % np.sum(out_array))
 	return (np.nonzero(out_array)[0])

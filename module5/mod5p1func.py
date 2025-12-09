@@ -3,11 +3,8 @@ import numpy as np
 import bitstring as bs
 import pylfsr 
 
-#Lowpass filter
-def lowpass(cutoff, taps, fs, data):
-    lowpass_filter = signal.firwin(taps, cutoff, fs=fs)
-    filtered_data = np.convolve(lowpass_filter, data)
-    return filtered_data
+# Various functions written here were created by: Galahad Wernsing
+# Modified for ECE 331X by: Samuel Forero 
 
 #Finds the phase difference over time 
 def phaseDiff(data, downsample_ratio=1):
@@ -23,8 +20,6 @@ def convertToBits(data):
     return np.greater(data, 0)
 
 #Finds a bit pattern in a bit stream
-# Function created by: Galahad Wernsing
-# Modified for ECE 331X by: Samuel Forero
 def findBitPattern(data_stream, pattern):
     pos_array = []
     data_stream = bs.Bits(data_stream)
@@ -83,6 +78,7 @@ def dewhiten(packet, channel=37):
     output = lfsr.runKCycle(7)  # Pre-run to set up the LFSR
 
     # Dewhiten each byte in the packet
+    
     for byte in packet: 
         whitened_byte = 0
         # loop through each bit in byte
@@ -128,7 +124,7 @@ def checkCRC(packet,received_crc=None):
             
     return valid_crc
 
-def get_CRC(bits):
+def  get_CRC(bits):
 	# my numpy array implementation was 10x slower, I don't know why
 	# this may be easier to read than the whitening, input data is handled differently
 	

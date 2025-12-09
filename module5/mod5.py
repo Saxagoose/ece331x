@@ -19,9 +19,9 @@ downsampleRatio = 2 #Ratio for down sampling data
 
 
 # Load data 
-# signal = np.load("/home/goose/Documents/wpi/ece-331x/module5/data1.npy", "r")
+signal = np.load("/home/goose/Documents/wpi/ece331x/module5/data1.npy", "r")
 # signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy", "r")
-signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/example_ble_data.npy", "r")
+# signal = np.load("/Users/fionaprendergast/ECE331X/ece331x/module5/example_ble_data.npy", "r")
 
 
 # Find phase difference of the data, note: downsamples 

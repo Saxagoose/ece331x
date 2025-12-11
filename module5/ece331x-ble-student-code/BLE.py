@@ -2,6 +2,7 @@ import numpy as np
 import plot_helpers as ph
 import BLE_Code_Lookup as lookup
 import mod5p1func as p1Func
+import matplotlib.pyplot as plt
 # BLE Methods ----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------
@@ -260,12 +261,8 @@ def fix_CRC(packet_bits, CRC):
 
 #-----------------------------------------------------------------------------------------
 
-def decode_ad_channel(data, dwnsmpl = 2, chan_num = 38):
-	
-	# bits = get_bit_stream(data, downsample_ratio = dwnsmpl)
-	# phaseDiff = mod5p1func.phaseDiff(data, dwnsmpl)
-	# bits = mod5p1func.convertToBits(phaseDiff)
-	
+def decode_ad_channel(data, fs, dwnsmpl = 2, chan_num = 38):
+		
 	rawPhaseDiff = p1Func.phaseDiff(data, dwnsmpl)
 	# Convert signal to bit stream - boolean array where each True or False is if the phase diff is > 0 or not
 	bits = p1Func.convertToBits(rawPhaseDiff)
@@ -277,13 +274,37 @@ def decode_ad_channel(data, dwnsmpl = 2, chan_num = 38):
 		packet = bits[AA_start:AA_start+300*8] # packet must be shorter than this, at least for pre-5.0 packets
 		packets = packets + [packet]
 
-	# List of advertising packets and their starting positions
-	# packetList, adStartPos = p1Func.packetList(bits)
-	# print(f"Found {len(packetList)} advertising packets in the capture.")
+	# Raw IQ Data Plot
+	rawPhaseDiff = rawPhaseDiff[:int(10e3)]
+	totalTime = np.linspace(0, (len(rawPhaseDiff)*dwnsmpl/fs), (len(rawPhaseDiff)))
+	plt.subplot(3,1,1)
+	plt.title("Phase Difference vs. Time for Entire Capture of Raw I/Q Data")
+	plt.plot(totalTime, rawPhaseDiff)
+	plt.xlabel("Time(s)")
+	plt.ylabel("Phase Difference")
+
+	packetNum = 1
+	bleFrame = rawPhaseDiff[packet_start_locations[packetNum]:(packet_start_locations[packetNum]+300*8)]
+	frameTime = np.linspace(0, (len(bleFrame)*dwnsmpl)/fs, (len(bleFrame)))
+	plt.subplot(3,1,2)
+	plt.title("Phase Difference vs. Time of a BLE Frame")
+	print(np.size(frameTime))
+	print(np.size(bleFrame))
+	plt.plot(frameTime, bleFrame)
+	plt.xlabel("Time(s)")
+	plt.ylabel("Phase Difference")
+
+	bleFramePreamble = bleFramePreamble = bleFrame[:(1*8)]
+	preambleTime = np.linspace(0, (len(bleFramePreamble)*dwnsmpl/fs), (len(bleFramePreamble)))
+	plt.subplot(3,1,3)
+	plt.title("Phase Difference vs. Time of a BLE Frame Preamble")
+	plt.plot(preambleTime, bleFramePreamble)
+	plt.xlabel("Time(s)")
+	plt.ylabel("Phase Difference")
 	
 
 	processed_packets = process_ad_packet_chunks(packets, chan_num)
-	
+	plt.show()
 	return {time:data for time, data in zip(packet_start_locations, processed_packets)}
 
 

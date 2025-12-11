@@ -12,7 +12,7 @@ ad_channels = {37:2402e6, 38:2426e6, 39:2480e6}
 channel = 37
 
 fc = 38
-fs = 4e6
+fs = 4e6 #Sampling rate
 buff_size = 2**20
 
 print("sample rate: %s" % fs)
@@ -30,7 +30,7 @@ print("collection time: %s" % (buff_size/fs))
 buffer = np.load('/home/goose/Documents/wpi/ece331x/module5/data1.npy', 'r')
 # process data ---------------------------------------------------------------------------
 
-decoded_channel = BLE.decode_ad_channel(buffer, dwnsmpl=2, chan_num= channel) 
+decoded_channel = BLE.decode_ad_channel(buffer, dwnsmpl=2, chan_num= channel, fs=fs) 
 
 
 # print out data -------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import numpy as np
 import plot_helpers as ph
 import BLE_Code_Lookup as lookup
+import mod5p1func as p1Func
 # BLE Methods ----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------
@@ -261,15 +262,25 @@ def fix_CRC(packet_bits, CRC):
 
 def decode_ad_channel(data, dwnsmpl = 2, chan_num = 38):
 	
-	bits = get_bit_stream(data, downsample_ratio = dwnsmpl)
-
-	packet_start_locations = find_advertising_packets(bits)
-
+	# bits = get_bit_stream(data, downsample_ratio = dwnsmpl)
+	# phaseDiff = mod5p1func.phaseDiff(data, dwnsmpl)
+	# bits = mod5p1func.convertToBits(phaseDiff)
+	
+	rawPhaseDiff = p1Func.phaseDiff(data, dwnsmpl)
+	# Convert signal to bit stream - boolean array where each True or False is if the phase diff is > 0 or not
+	bits = p1Func.convertToBits(rawPhaseDiff)
+	packet_start_locations = p1Func.findAdPackets(bits)
+	print(packet_start_locations)
 	packets = []
 	for loc in packet_start_locations:
 		AA_start = loc+40
 		packet = bits[AA_start:AA_start+300*8] # packet must be shorter than this, at least for pre-5.0 packets
 		packets = packets + [packet]
+
+	# List of advertising packets and their starting positions
+	# packetList, adStartPos = p1Func.packetList(bits)
+	# print(f"Found {len(packetList)} advertising packets in the capture.")
+	
 
 	processed_packets = process_ad_packet_chunks(packets, chan_num)
 	

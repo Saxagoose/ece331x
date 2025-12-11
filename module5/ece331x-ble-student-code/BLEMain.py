@@ -9,7 +9,7 @@ import numpy as np
 # set up the radio -----------------------------------------------------------------------
 
 ad_channels = {37:2402e6, 38:2426e6, 39:2480e6}
-channel = 38
+channel = 37
 
 fc = 38
 fs = 4e6
@@ -25,11 +25,12 @@ print("collection time: %s" % (buff_size/fs))
 
 # buffer = HAL.get_filled_buffer()
 #buffer = np.fromfile('C:/Users/meflo/Documents/Official Final Master Code/15019-samples.iq', np.complex128)
-buffer = np.fromfile('/Users/fionaprendergast/ECE331X/ece331x/module5/ece331x-ble-student-code/example_ble_data.npy', np.complex128)
+# buffer = np.fromfile('/Users/fionaprendergast/ECE331X/ece331x/module5/ece331x-ble-student-code/example_ble_data.npy', np.complex128)
 # buffer = np.fromfile('/Users/fionaprendergast/ECE331X/ece331x/module5/data1.npy', np.complex128)
+buffer = np.load('/home/goose/Documents/wpi/ece331x/module5/data1.npy', 'r')
 # process data ---------------------------------------------------------------------------
 
-decoded_channel = BLE.decode_ad_channel(buffer, dwnsmpl=int(fs/1e6), chan_num= 38) 
+decoded_channel = BLE.decode_ad_channel(buffer, dwnsmpl=2, chan_num= channel) 
 
 
 # print out data -------------------------------------------------------------------------
@@ -38,4 +39,4 @@ BLE.channel_printer(decoded_channel)
 
 # turn off the radio ---------------------------------------------------------------------
 
-HAL.turn_off_radio()
+# HAL.turn_off_radio()
